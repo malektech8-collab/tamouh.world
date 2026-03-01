@@ -5,10 +5,16 @@ from models.resume_doc import ResumeDoc
 
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
-PARSE_PROMPT = """
+# Generate schema once
+SCHEMA = ResumeDoc.model_json_schema()
+
+PARSE_PROMPT = f"""
 You are an expert resume parser. Extract the information from the raw resume text into the following JSON format.
 Ensure you follow the structure strictly. Never invent experience.
 If a section is missing, return an empty list or null as appropriate.
+
+JSON SCHEMA:
+{json.dumps(SCHEMA, indent=2)}
 """
 
 def parse_resume_text(text: str) -> ResumeDoc:
@@ -26,7 +32,7 @@ def parse_resume_text(text: str) -> ResumeDoc:
 
 def audit_resume(resume: ResumeDoc) -> dict:
     # Separate prompt for auditing logic
-    AUDIT_PROMPT = f"Audit this resume for ATS optimization and clarity: {resume.model_dump_json()}"
+    AUDIT_PROMPT = f"Audit this resume for ATS optimization and clarity. Return the findings as JSON: {resume.model_dump_json()}"
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": AUDIT_PROMPT}],
