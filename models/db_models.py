@@ -6,14 +6,16 @@ import uuid
 
 class User(Base):
     __tablename__ = "users"
-    
+
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)  # bcrypt hashed password
+    is_active = Column(type_=type(True), default=True)  # Account active status
     stripe_customer_id = Column(String, nullable=True)
     plan = Column(String, default="free")
     credits = Column(Integer, default=5)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
-    
+
     jobs = relationship("ResumeJob", back_populates="user")
 
 class ResumeJob(Base):
@@ -21,8 +23,9 @@ class ResumeJob(Base):
     
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id = Column(String, ForeignKey("users.id"))
-    status = Column(String) # 'queued', 'processing', 'completed', 'failed'
-    
+    status = Column(String)  # 'queued', 'processing', 'completed', 'failed'
+    error_message = Column(String, nullable=True)  # Error details if failed
+
     # AI Results
     input_text = Column(String, nullable=True)
     job_description = Column(String, nullable=True)
