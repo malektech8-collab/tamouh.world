@@ -1,8 +1,14 @@
-from fastapi import FastAPI, UploadFile, File, BackgroundTasks
+from fastapi import FastAPI, UploadFile, File, Form, Depends
 from app.config import settings
 from workers.tasks import process_resume_job
+from app.database import engine, get_db, Base
+from models.db_models import ResumeJob, User
+from sqlalchemy.orm import Session
 import uuid
 import os
+
+# Initialize database tables
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title=settings.APP_NAME)
 
@@ -11,7 +17,11 @@ async def health_check():
     return {"status": "healthy", "app": settings.APP_NAME}
 
 @app.post("/resume/create")
-async def create_resume_job(file: UploadFile = File(...)):
+async def create_resume_job(
+    file: UploadFile = File(...),
+    job_description: str = Form(None),
+    db: Session = Depends(get_db)
+):
     job_id = str(uuid.uuid4())
     upload_dir = "/tmp/uploads"
     os.makedirs(upload_dir, exist_ok=True)
@@ -22,18 +32,30 @@ async def create_resume_job(file: UploadFile = File(...)):
         
     file_type = file.filename.split(".")[-1].lower()
     
-    # Trigger Celery task
-    process_resume_job.delay(job_id, file_path, file_type)
+    # Create job in database
+    new_job = ResumeJob(
+        id=job_id,
+        status="queued",
+        job_description=job_description
+    )
+    db.add(new_job)
+    db.commit()
+    
+    # Trigger Celery task with JD
+    process_resume_job.delay(job_id, file_path, file_type, job_description)
     
     return {"job_id": job_id, "status": "queued"}
 
 @app.get("/resume/status/{job_id}")
-async def get_status(job_id: str):
-    # This will eventually read from a real DB
-    from workers.tasks import celery_app
-    res = celery_app.AsyncResult(job_id)
+async def get_status(job_id: str, db: Session = Depends(get_db)):
+    job = db.query(ResumeJob).filter(ResumeJob.id == job_id).first()
+    if not job:
+        return {"error": "Job not found"}
     
-    if res.ready():
-        return {"job_id": job_id, "status": "completed", "result": res.result}
-    else:
-        return {"job_id": job_id, "status": "processing"}
+    return {
+        "job_id": job.id,
+        "status": job.status,
+        "resume": job.resume_json,
+        "audit": job.audit_json,
+        "pdf_url": job.pdf_url
+    }
