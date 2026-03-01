@@ -44,7 +44,9 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization"],
 )
 
-# Mount Static Folders
+# Ensure directories exist before mounting (StaticFiles raises RuntimeError otherwise)
+Path("static").mkdir(exist_ok=True)
+Path("outputs").mkdir(exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/outputs", StaticFiles(directory="outputs"), name="outputs")
 
@@ -109,7 +111,7 @@ async def register(request: UserRegisterRequest, db: Session = Depends(get_db)):
     )
 
     return {
-        "user": UserResponse.from_orm(new_user),
+        "user": UserResponse.model_validate(new_user),
         "access_token": access_token,
         "token_type": "bearer"
     }
@@ -186,7 +188,7 @@ async def refresh_token(current_user: User = Depends(get_current_user)):
     }
 
 
-@app.post("/auth/resume")
+@app.get("/auth/me")
 async def get_current_user_info(current_user: User = Depends(get_current_user)):
     """
     Get current authenticated user info.
@@ -197,7 +199,7 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
     Returns:
         User data
     """
-    return UserResponse.from_orm(current_user)
+    return UserResponse.model_validate(current_user)
 
 
 # ===== RESUME ENDPOINTS =====

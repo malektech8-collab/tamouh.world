@@ -19,6 +19,7 @@ env = Environment(loader=FileSystemLoader("templates"))
 def process_resume_job(job_id: str, file_path: str, file_type: str, job_description: Optional[str] = None):
     logger.info(f"Starting Resume Job {job_id} | Type: {file_type} | Has JD: {bool(job_description)}")
     db = SessionLocal()
+    job = None  # Initialize before try so the except block can reference it safely
     try:
         # Step 1: Update Status in DB
         job = db.query(ResumeJob).filter(ResumeJob.id == job_id).first()
@@ -100,8 +101,10 @@ def process_resume_job(job_id: str, file_path: str, file_type: str, job_descript
         
     except Exception as e:
         logger.error(f"Critical Failure Job {job_id}: {str(e)}")
+        db.rollback()  # Roll back any partial transaction before writing failed state
         if job:
             job.status = "failed"
+            job.error_message = str(e)
             db.commit()
         return {"status": "failed", "error": str(e)}
     finally:

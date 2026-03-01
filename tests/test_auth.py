@@ -229,7 +229,7 @@ class TestProtectedEndpoints:
             files = {"file": ("resume.pdf", f, "application/pdf")}
             response = test_client.post("/resume/create", files=files)
 
-        assert response.status_code == 403  # Forbidden (no auth)
+        assert response.status_code == 401  # Unauthorized (no credentials provided)
 
     def test_resume_create_with_valid_auth(
         self, test_client, test_db, sample_pdf_file
@@ -271,7 +271,7 @@ class TestProtectedEndpoints:
             "/resume/status/any-job-id"
         )
 
-        assert response.status_code == 403  # Forbidden
+        assert response.status_code == 401  # Unauthorized (no credentials provided)
 
     def test_resume_status_with_auth(self, test_client, test_db):
         """Test getting resume status with auth."""

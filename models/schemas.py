@@ -2,7 +2,7 @@
 Pydantic schemas for API request/response models.
 """
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from typing import Optional
 
 
@@ -11,13 +11,14 @@ class UserRegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=100)
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "email": "user@example.com",
                 "password": "securepassword123"
             }
         }
+    )
 
 
 class UserLoginRequest(BaseModel):
@@ -25,13 +26,14 @@ class UserLoginRequest(BaseModel):
     email: EmailStr
     password: str
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "email": "user@example.com",
                 "password": "securepassword123"
             }
         }
+    )
 
 
 class TokenResponse(BaseModel):
@@ -40,14 +42,15 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     expires_in: int  # Seconds
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
                 "token_type": "bearer",
                 "expires_in": 86400
             }
         }
+    )
 
 
 class UserResponse(BaseModel):
@@ -58,9 +61,9 @@ class UserResponse(BaseModel):
     plan: str
     credits: int
 
-    class Config:
-        from_attributes = True
-        json_schema_extra = {
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
             "example": {
                 "id": "123e4567-e89b-12d3-a456-426614174000",
                 "email": "user@example.com",
@@ -69,6 +72,7 @@ class UserResponse(BaseModel):
                 "credits": 5
             }
         }
+    )
 
 
 class UserRegisterResponse(BaseModel):
@@ -77,8 +81,8 @@ class UserRegisterResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "user": {
                     "id": "123e4567-e89b-12d3-a456-426614174000",
@@ -91,6 +95,7 @@ class UserRegisterResponse(BaseModel):
                 "token_type": "bearer"
             }
         }
+    )
 
 
 class ResumeJobResponse(BaseModel):
@@ -104,8 +109,8 @@ class ResumeJobResponse(BaseModel):
     error: Optional[str] = None
     metrics: Optional[dict] = None
 
-    class Config:
-        json_schema_extra = {
+    model_config = ConfigDict(
+        json_schema_extra={
             "example": {
                 "job_id": "123e4567-e89b-12d3-a456-426614174000",
                 "status": "processing",
@@ -117,3 +122,4 @@ class ResumeJobResponse(BaseModel):
                 }
             }
         }
+    )

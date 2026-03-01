@@ -4,24 +4,19 @@ Authentication module for JWT token and password management.
 
 from datetime import datetime, timedelta, timezone
 from typing import Optional
+import bcrypt as _bcrypt
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthCredential
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.config import settings
 from app.database import get_db
 from models.db_models import User
 from sqlalchemy.orm import Session
 
-# Password hashing context
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto",
-    bcrypt__rounds=settings.BCRYPT_LOG_ROUNDS
-)
-
-# HTTP Bearer security scheme
+# HTTP Bearer security scheme (auto_error=True: returns 403 if no token provided)
 security = HTTPBearer()
+# Optional variant: returns None instead of 403 when no token is present
+optional_security = HTTPBearer(auto_error=False)
 
 
 def hash_password(password: str) -> str:
@@ -32,23 +27,27 @@ def hash_password(password: str) -> str:
         password: Plain text password
 
     Returns:
-        Hashed password string
+        bcrypt hash string (includes algorithm, cost factor, and salt)
     """
-    return pwd_context.hash(password)
+    salt = _bcrypt.gensalt(rounds=settings.BCRYPT_LOG_ROUNDS)
+    return _bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """
-    Verify a plain password against a hashed password.
+    Verify a plain password against a bcrypt hash.
 
     Args:
         plain_password: Plain text password
-        hashed_password: Hashed password from database
+        hashed_password: bcrypt hash from database
 
     Returns:
         True if password matches, False otherwise
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    return _bcrypt.checkpw(
+        plain_password.encode("utf-8"),
+        hashed_password.encode("utf-8")
+    )
 
 
 def create_access_token(
@@ -120,7 +119,7 @@ def decode_token(token: str) -> Optional[str]:
 
 
 async def get_current_user(
-    credentials: HTTPAuthCredential = Depends(security),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
     """
@@ -137,15 +136,7 @@ async def get_current_user(
         HTTPException: If token is invalid or user not found
     """
     token = credentials.credentials
-
-    try:
-        user_id = decode_token(token)
-    except HTTPException:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    user_id = decode_token(token)  # raises HTTP 401 if token is invalid/expired
 
     user = db.query(User).filter(User.id == user_id).first()
 
@@ -166,7 +157,7 @@ async def get_current_user(
 
 
 async def get_current_user_optional(
-    credentials: Optional[HTTPAuthCredential] = Depends(security),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_security),
     db: Session = Depends(get_db)
 ) -> Optional[User]:
     """

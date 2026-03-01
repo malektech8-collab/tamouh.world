@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, JSON, Integer, DateTime, ForeignKey
+from sqlalchemy import Column, String, JSON, Integer, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from app.database import Base
 import datetime
@@ -10,7 +10,7 @@ class User(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)  # bcrypt hashed password
-    is_active = Column(type_=type(True), default=True)  # Account active status
+    is_active = Column(Boolean, default=True)  # Account active status
     stripe_customer_id = Column(String, nullable=True)
     plan = Column(String, default="free")
     credits = Column(Integer, default=5)
