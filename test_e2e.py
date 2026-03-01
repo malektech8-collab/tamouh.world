@@ -1,6 +1,8 @@
 from services.parser import parse_resume_text, audit_resume
 from jinja2 import Environment, FileSystemLoader
 import os
+import asyncio
+from playwright.async_api import async_playwright
 from app.config import settings
 from models.resume_doc import ResumeDoc
 
@@ -57,20 +59,28 @@ def run_test():
         output_dir = "test_outputs"
         os.makedirs(output_dir, exist_ok=True)
         
-        # Save HTML anyway
+        # Save HTML
         html_path = f"{output_dir}/test_resume.html"
         with open(html_path, "w", encoding="utf-8") as f:
             f.write(html_content)
         print(f"HTML Preview generated at: {os.path.abspath(html_path)}")
 
+        # PDF with Playwright
+        async def generate_pdf():
+            async with async_playwright() as p:
+                browser = await p.chromium.launch()
+                page = await browser.new_page()
+                await page.set_content(html_content)
+                pdf_path = f"{output_dir}/test_resume.pdf"
+                await page.pdf(path=pdf_path, format="A4", print_background=True)
+                await browser.close()
+                return pdf_path
+
         try:
-            from weasyprint import HTML
-            pdf_path = f"{output_dir}/test_resume.pdf"
-            HTML(string=html_content).write_pdf(pdf_path)
+            pdf_path = asyncio.run(generate_pdf())
             print(f"PDF generated at: {os.path.abspath(pdf_path)}")
         except Exception as pdf_err:
-            print(f"PDF generation skipped: {pdf_err}")
-            print("Tip: WeasyPrint on Windows requires GTK+ libraries. HTML preview is available.")
+            print(f"PDF generation failed: {pdf_err}")
 
     except Exception as e:
         print(f"Rendering failed: {e}")

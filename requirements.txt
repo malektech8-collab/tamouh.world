@@ -11,7 +11,7 @@ python-multipart
 pdfplumber
 python-docx
 jinja2
-weasyprint
+playwright
 docxtpl
 sqlalchemy
 psycopg2-binary
