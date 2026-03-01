@@ -8,6 +8,7 @@ import bcrypt as _bcrypt
 from jose import JWTError, jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from loguru import logger
 from app.config import settings
 from app.database import get_db
 from models.db_models import User
@@ -111,6 +112,7 @@ def decode_token(token: str) -> Optional[str]:
         return user_id
 
     except JWTError as e:
+        logger.warning("Token validation failed", reason=str(e))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid authentication credentials: {str(e)}",
@@ -141,6 +143,7 @@ async def get_current_user(
     user = db.query(User).filter(User.id == user_id).first()
 
     if user is None:
+        logger.warning("Token references unknown user", user_id=user_id)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found",
@@ -148,6 +151,7 @@ async def get_current_user(
         )
 
     if not user.is_active:
+        logger.warning("Access denied — inactive account", user_id=user.id)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="User account is inactive"

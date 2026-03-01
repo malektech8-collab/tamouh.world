@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     JWT_EXPIRATION_HOURS: int = 24
     BCRYPT_LOG_ROUNDS: int = 12
 
+    # Logging
+    LOG_LEVEL: str = "INFO"        # DEBUG | INFO | WARNING | ERROR
+    LOG_DIR: str = "logs"          # Directory for rotating log files
+    LOG_FORMAT: str = "json"       # "json" (structured) | "text" (human-readable)
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
