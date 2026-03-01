@@ -28,8 +28,11 @@ class ResumeJob(Base):
     job_description = Column(String, nullable=True)
     resume_json = Column(JSON, nullable=True)
     audit_json = Column(JSON, nullable=True)
+    match_json = Column(JSON, nullable=True)
     
-    # Generated Assets
+    # Assets & Metrics
+    total_tokens = Column(Integer, default=0)
+    total_cost = Column(String, default="0.0")
     pdf_url = Column(String, nullable=True)
     docx_url = Column(String, nullable=True)
     

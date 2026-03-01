@@ -28,13 +28,13 @@ def run_jd_test():
 
     try:
         print("Step 1: Parsing original resume...")
-        resume = parse_resume_text(resume_text)
+        resume, _, _ = parse_resume_text(resume_text)
         
         print("Step 2: Optimizing against JD (Headless)...")
-        optimized_resume = optimize_resume(resume, jd_text)
+        optimized_resume, _, _ = optimize_resume(resume, jd_text)
         
         print("Step 3: Auditing optimized resume...")
-        audit = audit_resume(optimized_resume, jd=jd_text)
+        audit, _, _ = audit_resume(optimized_resume, jd=jd_text)
         
         print(f"Optimization Results:")
         print(f"Original Skills: {resume.skills.get('core', [])}")

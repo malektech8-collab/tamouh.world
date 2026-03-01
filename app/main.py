@@ -1,23 +1,32 @@
-from fastapi import FastAPI, UploadFile, File, Form, Depends
+from fastapi import FastAPI, UploadFile, File, Form, Depends, Request
 from app.config import settings
 from workers.tasks import process_resume_job
 from app.database import engine, get_db, Base
 from models.db_models import ResumeJob, User
 from sqlalchemy.orm import Session
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 import uuid
 import os
 
 # Initialize database tables
 Base.metadata.create_all(bind=engine)
 
+# Setup Rate Limiter
+limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title=settings.APP_NAME)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 @app.get("/")
 async def health_check():
     return {"status": "healthy", "app": settings.APP_NAME}
 
 @app.post("/resume/create")
+@limiter.limit("5/minute")
 async def create_resume_job(
+    request: Request,
     file: UploadFile = File(...),
     job_description: str = Form(None),
     db: Session = Depends(get_db)
@@ -52,10 +61,21 @@ async def get_status(job_id: str, db: Session = Depends(get_db)):
     if not job:
         return {"error": "Job not found"}
     
+    # Simple progress logic for API
+    progress = 0
+    if job.status == "queued": progress = 10
+    elif job.status == "processing": progress = 40
+    elif job.status == "completed": progress = 100
+    
     return {
         "job_id": job.id,
         "status": job.status,
+        "progress": progress,
         "resume": job.resume_json,
         "audit": job.audit_json,
-        "pdf_url": job.pdf_url
+        "pdf_url": job.pdf_url,
+        "metrics": {
+            "tokens": job.total_tokens,
+            "estimated_cost": job.total_cost
+        }
     }
