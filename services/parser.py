@@ -67,16 +67,24 @@ def parse_resume_text(text: str) -> tuple[ResumeDoc, int, float]:
     return safe_llm_call(text, ResumeDoc, system_msg=PARSE_PROMPT)
 
 def audit_resume(resume: ResumeDoc, jd: Optional[str] = None) -> tuple[dict, int, float]:
-    jd_context = f" against this Job Description: {jd}" if jd else ""
-    prompt = f"Audit this resume{jd_context} for ATS optimization and clarity. Return the findings as JSON: {resume.model_dump_json()}"
-    
-    # Simple Audit Wrapper (since audit is a dict, we could define a specific model if needed)
+    # Simple Audit Wrapper
     class AuditResponse(BaseModel):
         strengths: list[str]
         weaknesses: list[str]
         ats_score: int
         improvement_tips: list[str]
 
+    jd_context = f" against this Job Description: {jd}" if jd else ""
+    prompt = f"""
+    Audit this resume{jd_context} for ATS optimization and clarity.
+    
+    RESUME JSON:
+    {resume.model_dump_json()}
+    
+    RETURN AS JSON ACCORDING TO THIS SCHEMA:
+    {json.dumps(AuditResponse.model_json_schema(), indent=2)}
+    """
+    
     res_obj, tokens, cost = safe_llm_call(prompt, AuditResponse)
     return res_obj.model_dump(), tokens, cost
 

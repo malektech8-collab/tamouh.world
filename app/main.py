@@ -1,6 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, Form, Depends, Request
 from app.config import settings
 from workers.tasks import process_resume_job
+from fastapi.staticfiles import StaticFiles
 from app.database import engine, get_db, Base
 from models.db_models import ResumeJob, User
 from sqlalchemy.orm import Session
@@ -16,10 +17,20 @@ Base.metadata.create_all(bind=engine)
 # Setup Rate Limiter
 limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title=settings.APP_NAME)
+
+# Mount Static Folders
+app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/outputs", StaticFiles(directory="outputs"), name="outputs")
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+from fastapi.responses import RedirectResponse
+
 @app.get("/")
+async def root():
+    return RedirectResponse(url="/static/index.html")
+
+@app.get("/health")
 async def health_check():
     return {"status": "healthy", "app": settings.APP_NAME}
 

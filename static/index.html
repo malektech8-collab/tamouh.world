@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume SaaS - Testing Lab</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text: #1e293b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            color: var(--text);
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        h1 {
+            margin-top: 0;
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        input[type="file"],
+        textarea {
+            width: 100%;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 0.75rem;
+            font-family: inherit;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        #status-card {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f1f5f9;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .result-item {
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 1rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-junior {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-senior {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-executive {
+            background: #fef3c7;
+            color: #92400e;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🚀 AI Resume Lab</h1>
+        <p>Upload a resume and optional JD to test the intelligence engine.</p>
+
+        <form id="upload-form">
+            <div class="form-group">
+                <label for="resume-file">Resume (PDF/DOCX)</label>
+                <input type="file" id="resume-file" accept=".pdf,.docx" required>
+            </div>
+
+            <div class="form-group">
+                <label for="jd-text">Job Description (Optional)</label>
+                <textarea id="jd-text" rows="5" placeholder="Paste JD here..."></textarea>
+            </div>
+
+            <button type="submit" id="submit-btn">Run Engine</button>
+        </form>
+
+        <div id="status-card">
+            <h2 id="status-text">🔄 Processing Job...</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-indicator"></div>
+            </div>
+
+            <div id="results-area" style="display: none;">
+                <div class="result-item">
+                    <strong>Career Level:</strong> <span id="res-career-level" class="badge"></span>
+                    <span id="res-confidence" style="font-size: 0.8rem; color: #64748b;"></span>
+                </div>
+                <div id="match-section" class="result-item" style="display: none;">
+                    <strong>JD Match Score:</strong> <span id="res-match-score"></span>/100
+                </div>
+                <div class="result-item">
+                    <a id="download-link" href="#" target="_blank" style="color: var(--primary); font-weight: 700;">📥
+                        Download Optimized PDF</a>
+                </div>
+            </div>
+
+            <div id="error-msg" style="color: #ef4444; display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('upload-form');
+        const statusCard = document.getElementById('status-card');
+        const progressIndicator = document.getElementById('progress-indicator');
+        const statusText = document.getElementById('status-text');
+        const resultsArea = document.getElementById('results-area');
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            statusCard.style.display = 'block';
+            resultsArea.style.display = 'none';
+            progressIndicator.style.width = '10%';
+
+            const file = document.getElementById('resume-file').files[0];
+            const jd = document.getElementById("jd-text").value;
+
+            const formData = new FormData();
+            formData.append('file', file);
+            if (jd) formData.append('job_description', jd);
+
+            try {
+                const response = await fetch('/resume/create', { method: 'POST', body: formData });
+                const { job_id } = await response.json();
+
+                pollStatus(job_id);
+            } catch (err) {
+                showError("Connection failed. Check if server is running.");
+            }
+        };
+
+        async function pollStatus(job_id) {
+            const res = await fetch(`/resume/status/${job_id}`);
+            const data = await res.json();
+
+            if (data.status === 'completed') {
+                progressIndicator.style.width = '100%';
+                statusText.innerText = '✅ Finalizing Result...';
+                showResults(data);
+            } else if (data.status === 'failed') {
+                showError(data.error || "Processing failed.");
+            } else {
+                // Approximate progress based on backend status
+                if (data.status === 'processing') progressIndicator.style.width = '50%';
+                statusText.innerText = `🔄 Processing... (${data.status})`;
+                setTimeout(() => pollStatus(job_id), 2000);
+            }
+        }
+
+        function showResults(data) {
+            statusText.innerText = "🚀 AI Analysis Ready!";
+            resultsArea.style.display = 'block';
+
+            const meta = data.resume.meta;
+            const careerLevelElem = document.getElementById('res-career-level');
+            careerLevelElem.innerText = meta.career_level;
+            careerLevelElem.className = `badge badge-${meta.career_level}`;
+            document.getElementById('res-confidence').innerText = `(${(meta.confidence * 100).toFixed(0)}% confidence)`;
+
+            // Show match score if JD was provided
+            if (data.audit && data.audit.ats_score) {
+                document.getElementById('match-section').style.display = 'block';
+                document.getElementById('res-match-score').innerText = data.audit.ats_score;
+            }
+
+            const downloadBtn = document.getElementById('download-link');
+            // Assuming the PDF is served statically or we point to the file directly
+            downloadBtn.href = `/outputs/${data.job_id}.pdf`;
+            document.getElementById('submit-btn').disabled = false;
+        }
+
+        function showError(msg) {
+            document.getElementById('error-msg').innerText = msg;
+            document.getElementById('error-msg').style.display = 'block';
+            statusText.innerText = "❌ Error Occurred";
+            document.getElementById('submit-btn').disabled = false;
+        }
+    </script>
+</body>
+
+</html>

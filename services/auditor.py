@@ -1,3 +1,4 @@
+import json
 from pydantic import BaseModel
 from typing import List, Optional
 from services.parser import safe_llm_call
@@ -32,7 +33,8 @@ def calculate_jd_match(resume: ResumeDoc, jd: str) -> tuple[JDMatchResponse, int
     RESUME JSON:
     {resume.model_dump_json()}
 
-    Return as a structured JSON.
+    RETURN AS JSON ACCORDING TO THIS SCHEMA:
+    {json.dumps(JDMatchResponse.model_json_schema(), indent=2)}
     """
 
     res_obj, tokens, cost = safe_llm_call(prompt, JDMatchResponse)

@@ -1,3 +1,7 @@
+from celery import Celery
+from typing import Optional
+from app.config import settings
+from services.extractor import extract_text_from_pdf, extract_text_from_docx
 from services.parser import parse_resume_text, audit_resume, optimize_resume
 from services.auditor import calculate_jd_match
 from services.classifier import classify_career_level
