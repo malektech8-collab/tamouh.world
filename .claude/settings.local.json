@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /d/Antigravity/tamouh.world -maxdepth 1 -name \".gitignore\" -exec cat {} ;)",
+      "Bash(git -C /d/Antigravity/tamouh.world log --oneline)",
+      "Bash(pip freeze)",
+      "Bash(git add -A)",
+      "Bash(git commit:*)"
+    ]
+  }
+}
