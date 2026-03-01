@@ -81,9 +81,22 @@ def audit_resume(resume: ResumeDoc, jd: Optional[str] = None) -> tuple[dict, int
     return res_obj.model_dump(), tokens, cost
 
 def optimize_resume(resume: ResumeDoc, jd: str) -> tuple[ResumeDoc, int, float]:
+    career_level = resume.meta.career_level or "senior"
+    
+    # Career-aware prompts
+    level_instruction = ""
+    if career_level == "junior":
+        level_instruction = "Focus on technical skills, internships, and projects. Use a proactive tone for early-career growth."
+    elif career_level == "executive":
+        level_instruction = "Focus on high-level strategic impact, P&L responsibility, team leadership, and multi-year transformation initiatives."
+    else:
+        level_instruction = "Focus on professional achievements, specialized domain expertise, and quantified project delivery."
+
     OPTIMIZE_PROMPT = f"""
-    You are an expert resume writer. Optimize the following resume JSON for this job description.
+    You are an expert resume writer. Optimize the following {career_level}-level resume JSON for this job description.
     Ensure you return ONLY a valid JSON object matching the ResumeDoc schema.
+    
+    {level_instruction}
     
     1. Rewrite professional experience bullets to highlight relevance to the JD.
     2. Quantify achievements (use percentages and numbers where possible).

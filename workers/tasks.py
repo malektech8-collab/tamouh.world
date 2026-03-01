@@ -1,5 +1,6 @@
 from services.parser import parse_resume_text, audit_resume, optimize_resume
 from services.auditor import calculate_jd_match
+from services.classifier import classify_career_level
 from jinja2 import Environment, FileSystemLoader
 from playwright.sync_api import sync_playwright
 from app.database import SessionLocal
@@ -37,6 +38,12 @@ def process_resume_job(job_id: str, file_path: str, file_type: str, job_descript
         resume, tokens, cost = parse_resume_text(text)
         total_tokens += tokens
         total_cost += cost
+        
+        # Step 3.5: Career Classification
+        level, conf = classify_career_level(resume)
+        resume.meta.career_level = level
+        resume.meta.confidence = conf
+        logger.info(f"Classified resume as {level} with {conf*100}% confidence")
         
         match_data = None
         

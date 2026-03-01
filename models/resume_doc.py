@@ -30,6 +30,10 @@ class Meta(BaseModel):
     target_role: Optional[str] = ""
     design: str = "classic"
     ats_level: str = "strict"
+    career_level: Optional[str] = "senior" # junior, senior, executive
+    auto_detected: bool = True
+    confidence: float = 0.0
+    user_override: Optional[str] = None
 
 class ResumeDoc(BaseModel):
     meta: Meta
