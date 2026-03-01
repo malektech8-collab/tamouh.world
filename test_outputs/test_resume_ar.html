@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>أحمد محمد - Resume</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            margin: 40px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #003366;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0 0 5px 0;
+            color: #003366;
+            text-transform: uppercase;
+            font-size: 24pt;
+        }
+
+        .contact {
+            font-size: 10pt;
+            color: #444;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            font-variant: small-caps;
+            font-size: 14pt;
+            color: #003366;
+            border-bottom: 1.5px solid #003366;
+            margin-bottom: 10px;
+            padding-bottom: 2px;
+        }
+
+        .item {
+            margin-bottom: 15px;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 11pt;
+        }
+
+        .item-subheader {
+            font-style: italic;
+            font-size: 10pt;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .bullets {
+            margin: 5px 0 0 20px;
+            padding: 0;
+            list-style-type: square;
+            font-size: 10pt;
+        }
+
+        .bullets li {
+            margin-bottom: 3px;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 10pt;
+        }
+
+        /* RTL Overrides */
+        [dir="rtl"] {
+            text-align: right;
+        }
+
+        [dir="rtl"] .item-header {
+            flex-direction: row-reverse;
+        }
+
+        [dir="rtl"] .bullets {
+            margin: 5px 20px 0 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>أحمد محمد</h1>
+        <div class="contact">
+            ahmed@example.com | +966500000000 | None
+            
+            
+        </div>
+    </div>
+
+    
+    <div class="section">
+        <div class="section-title">Professional Summary</div>
+        <p style="font-size: 10pt;">خبير في تطوير تطبيقات الويب باستخدام بايثون وجافا سكريبت مع خبرة تزيد عن 7 سنوات.</p>
+    </div>
+    
+
+    <div class="section">
+        <div class="section-title">Professional Experience</div>
+        
+        <div class="item">
+            <div class="item-header">
+                <span>شركة تكنولوجيا المعلومات</span>
+                <span>2018 – None</span>
+            </div>
+            <div class="item-subheader">مطور أول | None</div>
+            <ul class="bullets">
+                
+                <li>قيادة فريق التطوير لبناء أنظمة ذكاء اصطناعي.</li>
+                
+                <li>تحسين أداء قواعد البيانات بنسبة 30%.</li>
+                
+            </ul>
+        </div>
+        
+    </div>
+
+    <div class="section">
+        <div class="section-title">Education</div>
+        
+        <div class="item">
+            <div class="item-header">
+                <span>جامعة الملك سعود</span>
+                <span>2014 – 2018</span>
+            </div>
+            <div class="item-subheader">بكالوريوس in علوم الحاسب</div>
+            
+        </div>
+        
+    </div>
+
+    <div class="section">
+        <div class="section-title">Skills & Expertise</div>
+        <div class="skills-grid">
+            <div><strong>Core Competencies:</strong> </div>
+            <div><strong>Technical Tools:</strong> </div>
+            
+        </div>
+    </div>
+
+    
+
+</body>
+
+</html>
