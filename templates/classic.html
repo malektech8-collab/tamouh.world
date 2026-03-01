@@ -1,46 +1,128 @@
 <!DOCTYPE html>
 <html lang="{{ resume.meta.language }}" dir="{{ 'rtl' if resume.meta.language == 'ar' else 'ltr' }}">
+
 <head>
     <meta charset="UTF-8">
     <title>{{ resume.profile.full_name }} - Resume</title>
     <style>
-        body { font-family: 'Times New Roman', serif; margin: 40px; line-height: 1.5; color: #333; }
-        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
-        .header h1 { margin-bottom: 5px; }
-        .contact { font-size: 0.9em; color: #555; }
-        .section { margin-bottom: 20px; }
-        .section-title { font-weight: bold; font-variant: small-caps; border-bottom: 1px solid #ccc; margin-bottom: 10px; }
-        .job, .education { margin-bottom: 15px; }
-        .job-header, .edu-header { display: flex; justify-content: space-between; font-weight: bold; }
-        .job-bullets, .skills-list { margin-top: 5px; }
-        [dir="rtl"] { text-align: right; }
-        [dir="rtl"] .job-header, [dir="rtl"] .edu-header { flex-direction: row-reverse; }
+        body {
+            font-family: 'Times New Roman', serif;
+            margin: 40px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #003366;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            margin: 0 0 5px 0;
+            color: #003366;
+            text-transform: uppercase;
+            font-size: 24pt;
+        }
+
+        .contact {
+            font-size: 10pt;
+            color: #444;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            font-variant: small-caps;
+            font-size: 14pt;
+            color: #003366;
+            border-bottom: 1.5px solid #003366;
+            margin-bottom: 10px;
+            padding-bottom: 2px;
+        }
+
+        .item {
+            margin-bottom: 15px;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 11pt;
+        }
+
+        .item-subheader {
+            font-style: italic;
+            font-size: 10pt;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .bullets {
+            margin: 5px 0 0 20px;
+            padding: 0;
+            list-style-type: square;
+            font-size: 10pt;
+        }
+
+        .bullets li {
+            margin-bottom: 3px;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 10pt;
+        }
+
+        /* RTL Overrides */
+        [dir="rtl"] {
+            text-align: right;
+        }
+
+        [dir="rtl"] .item-header {
+            flex-direction: row-reverse;
+        }
+
+        [dir="rtl"] .bullets {
+            margin: 5px 20px 0 0;
+        }
     </style>
 </head>
+
 <body>
     <div class="header">
         <h1>{{ resume.profile.full_name }}</h1>
         <div class="contact">
             {{ resume.profile.email }} | {{ resume.profile.phone }} | {{ resume.profile.location }}
+            {% if resume.profile.linkedin %}<br>{{ resume.profile.linkedin }}{% endif %}
+            {% if resume.profile.portfolio %} | {{ resume.profile.portfolio }}{% endif %}
         </div>
     </div>
 
     {% if resume.summary %}
     <div class="section">
         <div class="section-title">Professional Summary</div>
-        <p>{{ resume.summary }}</p>
+        <p style="font-size: 10pt;">{{ resume.summary }}</p>
     </div>
     {% endif %}
 
     <div class="section">
-        <div class="section-title">Experience</div>
+        <div class="section-title">Professional Experience</div>
         {% for exp in resume.experience %}
-        <div class="job">
-            <div class="job-header">
-                <span>{{ exp.title }} - {{ exp.company }}</span>
+        <div class="item">
+            <div class="item-header">
+                <span>{{ exp.company }}</span>
                 <span>{{ exp.start }} – {{ exp.end }}</span>
             </div>
-            <ul class="job-bullets">
+            <div class="item-subheader">{{ exp.title }} | {{ exp.location }}</div>
+            <ul class="bullets">
                 {% for bullet in exp.bullets %}
                 <li>{{ bullet }}</li>
                 {% endfor %}
@@ -50,11 +132,47 @@
     </div>
 
     <div class="section">
-        <div class="section-title">Skills</div>
-        <div class="skills-list">
-            <strong>Core:</strong> {{ resume.skills.core | join(', ') }}<br>
-            <strong>Tools:</strong> {{ resume.skills.tools | join(', ') }}
+        <div class="section-title">Education</div>
+        {% for edu in resume.education %}
+        <div class="item">
+            <div class="item-header">
+                <span>{{ edu.institution }}</span>
+                <span>{{ edu.start }} – {{ edu.end }}</span>
+            </div>
+            <div class="item-subheader">{{ edu.degree }} in {{ edu.field }}</div>
+            {% if edu.details %}
+            <ul class="bullets">
+                {% for detail in edu.details %}
+                <li>{{ detail }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="section">
+        <div class="section-title">Skills & Expertise</div>
+        <div class="skills-grid">
+            <div><strong>Core Competencies:</strong> {{ resume.skills.core | join(', ') }}</div>
+            <div><strong>Technical Tools:</strong> {{ resume.skills.tools | join(', ') }}</div>
+            {% if resume.skills.domain %}
+            <div><strong>Domain Knowledge:</strong> {{ resume.skills.domain | join(', ') }}</div>
+            {% endif %}
         </div>
     </div>
+
+    {% if resume.certifications %}
+    <div class="section">
+        <div class="section-title">Certifications</div>
+        <ul class="bullets">
+            {% for cert in resume.certifications %}
+            <li>{{ cert }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
 </body>
+
 </html>
