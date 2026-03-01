@@ -1,0 +1,16 @@
+fastapi
+uvicorn
+pydantic
+openai
+redis
+celery
+python-dotenv
+python-multipart
+pdfplumber
+python-docx
+jinja2
+weasyprint
+docxtpl
+sqlalchemy
+psycopg2-binary
+pytest

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="{{ resume.meta.language }}" dir="{{ 'rtl' if resume.meta.language == 'ar' else 'ltr' }}">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ resume.profile.full_name }} - Resume</title>
+    <style>
+        body { font-family: 'Times New Roman', serif; margin: 40px; line-height: 1.5; color: #333; }
+        .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+        .header h1 { margin-bottom: 5px; }
+        .contact { font-size: 0.9em; color: #555; }
+        .section { margin-bottom: 20px; }
+        .section-title { font-weight: bold; font-variant: small-caps; border-bottom: 1px solid #ccc; margin-bottom: 10px; }
+        .job, .education { margin-bottom: 15px; }
+        .job-header, .edu-header { display: flex; justify-content: space-between; font-weight: bold; }
+        .job-bullets, .skills-list { margin-top: 5px; }
+        [dir="rtl"] { text-align: right; }
+        [dir="rtl"] .job-header, [dir="rtl"] .edu-header { flex-direction: row-reverse; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ resume.profile.full_name }}</h1>
+        <div class="contact">
+            {{ resume.profile.email }} | {{ resume.profile.phone }} | {{ resume.profile.location }}
+        </div>
+    </div>
+
+    {% if resume.summary %}
+    <div class="section">
+        <div class="section-title">Professional Summary</div>
+        <p>{{ resume.summary }}</p>
+    </div>
+    {% endif %}
+
+    <div class="section">
+        <div class="section-title">Experience</div>
+        {% for exp in resume.experience %}
+        <div class="job">
+            <div class="job-header">
+                <span>{{ exp.title }} - {{ exp.company }}</span>
+                <span>{{ exp.start }} – {{ exp.end }}</span>
+            </div>
+            <ul class="job-bullets">
+                {% for bullet in exp.bullets %}
+                <li>{{ bullet }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="section">
+        <div class="section-title">Skills</div>
+        <div class="skills-list">
+            <strong>Core:</strong> {{ resume.skills.core | join(', ') }}<br>
+            <strong>Tools:</strong> {{ resume.skills.tools | join(', ') }}
+        </div>
+    </div>
+</body>
+</html>
